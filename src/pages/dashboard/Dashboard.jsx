@@ -1,4 +1,4 @@
-  import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db } from '../../services/firebase-config';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { 
@@ -20,8 +20,10 @@ const Dashboard = () => {
         new: docs.filter(o => o.status === 'Pending').length,
 
         // "In Progress" — assigned to rider, picked up, or being washed
-        // Covers: Assigned (from dispatch), Ready to PickUp, Picked Up, Processing
+        // Covers: Accepted (set by rider app), Assigned (set by Dispatch page),
+        //         Ready to PickUp, Picked Up, Processing (set by Orders page)
         progress: docs.filter(o =>
+          o.status === 'Accepted' ||
           o.status === 'Assigned' ||
           o.status === 'Ready to PickUp' ||
           o.status === 'Picked Up' ||
