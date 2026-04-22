@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { db } from '../../services/firebase-config';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { 
@@ -14,11 +14,27 @@ const Dashboard = () => {
     const q = query(collection(db, "orders"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => doc.data());
+
       setOrderCount({
+        // "New Orders" — waiting to be assigned
         new: docs.filter(o => o.status === 'Pending').length,
-        progress: docs.filter(o => o.status === 'In Progress').length,
-        delivery: docs.filter(o => o.status === 'Out for Delivery').length,
-        completed: docs.filter(o => o.status === 'Completed').length,
+
+        // "In Progress" — assigned to rider, picked up, or being washed
+        // Covers: Assigned (from dispatch), Ready to PickUp, Picked Up, Processing
+        progress: docs.filter(o =>
+          o.status === 'Assigned' ||
+          o.status === 'Ready to PickUp' ||
+          o.status === 'Picked Up' ||
+          o.status === 'Processing'
+        ).length,
+
+        // "Out for Delivery" — washed and on the way back to customer
+        // Covers: Ready to Deliver (set by admin in Orders page)
+        delivery: docs.filter(o => o.status === 'Ready to Deliver').length,
+
+        // "Completed Orders" — fully done
+        // Covers: Delivered (set by admin in Orders page)
+        completed: docs.filter(o => o.status === 'Delivered').length,
       });
     });
     return () => unsubscribe();
@@ -62,7 +78,6 @@ const Dashboard = () => {
       <div className="md:hidden flex flex-col mb-8">
         <div className="flex justify-between items-center mb-5">
           <div className="flex items-center gap-4">
-            {/* Click this to open the sidebar via window event */}
             <button 
               onClick={() => window.dispatchEvent(new Event('open-sidebar'))}
               className="p-1 -ml-1 focus:outline-none"
