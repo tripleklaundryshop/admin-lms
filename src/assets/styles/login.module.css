@@ -1,0 +1,217 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+
+/* Prevent scroll on the body */
+.pageWrapper {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #dbeafe; 
+  font-family: 'Inter', sans-serif;
+  padding: 15px;
+  overflow: hidden; 
+  box-sizing: border-box;
+}
+
+.mainContainer {
+  display: flex;
+  width: 100%;
+  max-width: 950px;
+  height: 580px; /* Set a specific height for the container */
+  background: #fdfbf3;
+  border-radius: 20px;
+  overflow: hidden;
+  box-sizing: border-box;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- LEFT BLUE SECTION --- */
+.leftSection {
+  flex: 1.1;
+  background-color: #3b71ca;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: white;
+  text-align: center;
+}
+
+.logoWrapper {
+  background: white;
+  border-radius: 100px 100px 15px 15px;
+  width: 180px; /* Slightly reduced */
+  overflow: hidden;
+  box-shadow: 0 10px 15px rgba(0,0,0,0.05);
+}
+
+.archPart {
+  padding: 30px 0 15px 0; /* Tightened */
+  display: flex;
+  justify-content: center;
+}
+
+.textPart {
+  padding: 0 20px 25px 20px;
+  color: #1a365d;
+}
+
+.textPart h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; /* Slightly smaller */
+  line-height: 1.2;
+  margin: 0;
+}
+
+.shirtIcon {
+  color: #3b71ca;
+}
+
+.leftSubtext {
+  margin-top: 20px;
+  font-size: 14px;
+  opacity: 0.9;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* --- RIGHT SECTION (FORM ADJUSTMENTS) --- */
+.rightSection {
+  flex: 1;
+  padding: 20px 50px; /* Reduced vertical padding */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background-color: #fdfbf3;
+  justify-content: center; /* Centers the form vertically in the available height */
+}
+
+.adminAccess {
+  position: absolute;
+  top: 25px;
+  right: 50px;
+  color: #3b71ca;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.formHeader {
+  margin-bottom: 25px; /* Reduced spacing */
+  text-align: center;
+}
+
+.welcomeTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; /* Reduced from 42px to save height */
+  color: #1a365d;
+  margin: 0 0 5px 0;
+}
+
+.welcomeSubtitle {
+  color: #8a8a8a;
+  font-size: 14px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Reduced gap between input groups */
+}
+
+.label {
+  font-size: 10px; /* Slightly smaller label */
+  font-weight: 800;
+  color: #1a365d;
+  margin-bottom: 6px;
+  display: block;
+  letter-spacing: 0.5px;
+}
+
+.inputWrapperBlue, .inputWrapperGray {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputBlue, .inputGray {
+  width: 100%;
+  padding: 12px 14px 12px 45px; /* Reduced padding from 14px to 12px */
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.inputBlue {
+  border: 1.5px solid #3b71ca;
+  background: white;
+}
+
+.inputGray {
+  border: none;
+  background: #eeebe3;
+}
+
+.inputIconBlue { position: absolute; left: 15px; color: #3b71ca; }
+.inputIconGray { position: absolute; left: 15px; color: #9ca3af; }
+
+.accessBtn {
+  background-color: #162a4d;
+  color: white;
+  padding: 12px; /* Reduced from 14px */
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 5px;
+  transition: opacity 0.2s;
+}
+
+.accessBtn:hover { opacity: 0.95; }
+
+.alertContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  min-width: 300px;
+}
+
+/* --- RESPONSIVE FIX --- */
+@media (max-width: 768px) {
+  .pageWrapper {
+    padding: 0;
+    height: 100vh;
+    overflow-y: auto; 
+  }
+
+  .mainContainer {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+
+  .leftSection {
+    padding: 30px 20px;
+    flex: none;
+  }
+
+  .rightSection {
+    padding: 30px 30px;
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .adminAccess {
+    position: static;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+}

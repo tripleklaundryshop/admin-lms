@@ -1,0 +1,242 @@
+/* Layout Wrapper */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-header {
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.logo-placeholder {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #333;
+  border: 2px dashed #ccc; /* Visual placeholder */
+  padding: 10px;
+}
+
+.sidebar-nav {
+  flex: 1;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 25px;
+  cursor: pointer;
+  color: #6c757d;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.nav-item:hover {
+  background-color: #f8f9fa;
+  color: #007bff;
+}
+
+/* Matching your screenshot active state */
+.nav-item.active {
+  background-color: #007bff;
+  color: #ffffff;
+  border-radius: 0 50px 50px 0;
+  margin-right: 15px;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid #eee;
+}
+
+.logout-link {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-weight: 500;
+  width: 100%;
+  cursor: pointer;
+  padding: 10px;
+}
+
+/* Placeholder for your icons */
+.icon-slot {
+  width: 24px;
+  height: 24px;
+  margin-right: 15px;
+  background: rgba(0, 0, 0, 0.05); /* Placeholder color */
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.nav-item.active .icon-slot {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  background: #f4f6f9;
+}
+
+/* --- Your Original Styles (Untouched) --- */
+.dashboard-bg {
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+.dashboard-card {
+  border-radius: 15px;
+  border: none;
+  padding: 10px;
+}
+
+.dashboard-card h6 {
+  font-size: 16px;
+}
+
+.dashboard-card h2 {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.new-orders { background: #e7a9a9; }
+.in-progress { background: #9eb9d6; }
+.delivery { background: #b9aedf; }
+.completed { background: #a9d0b5; }
+
+.chart-card {
+  border-radius: 15px;
+  padding: 40px;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* Table Specific Container */
+.orders-card {
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.table thead th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    padding: 15px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.table tbody td {
+    padding: 15px;
+    font-size: 0.85rem;
+    vertical-align: top;
+    color: #333;
+}
+
+/* Specific Cell Widths to prevent crowding */
+.address-cell {
+    max-width: 200px;
+    line-height: 1.4;
+}
+
+.contact-cell {
+    max-width: 150px;
+}
+
+.details-cell {
+    max-width: 180px;
+}
+
+.total-cell {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+/* Admin Profile Header */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+.profile-circle {
+    width: 35px;
+    height: 35px;
+    background-color: #007bff;
+    border-radius: 50%;
+    background-image: url('https://via.placeholder.com/35'); /* Replace with icon later */
+    background-size: cover;
+}
+
+/* Controls */
+.search-input {
+    max-width: 250px;
+    border-radius: 8px;
+}
+
+.status-select {
+    width: 150px;
+    border-radius: 8px;
+}
+
+.btn-edit, .btn-delete {
+    font-size: 1.1rem;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .nav-item.active {
+    border-radius: 0;
+    margin-right: 0;
+  }
+}
