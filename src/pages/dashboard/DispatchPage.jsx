@@ -54,10 +54,15 @@ const DispatchPage = () => {
 
     try {
       await updateDoc(doc(db, "orders", orderId), {
-        assignedRiderId: selectedRider.riderId || selectedRider.id, 
+        // Use Firestore document ID so the Flutter app can fetch the rider doc directly
+        assignedRiderId: selectedRider.id,
         riderId: selectedRider.riderId || selectedRider.id,
+        // Write all rider details to the order so the customer card is never empty
         riderName: selectedRider.fullName || selectedRider.name || "Unknown",
-        status: "Assigned", 
+        riderPhone: selectedRider.phone || selectedRider.phoneNumber || "",
+        riderVehicle: selectedRider.motorcycleType || selectedRider.motorcycle || "Motorcycle",
+        riderPlate: selectedRider.plateNumber || selectedRider.plate || "",
+        status: "Assigned",
         dispatchedAt: new Date()
       });
       
@@ -88,6 +93,9 @@ const DispatchPage = () => {
     const selectedRider = riders.find(r => r.id === selectedRiderId);
     const isOpen = activeDropdown === orderId;
 
+    // Only show riders who are currently online
+    const onlineRiders = riders.filter(r => r.isOnline === true);
+
     return (
       <div className="relative w-full" ref={isOpen ? dropdownRef : null}>
         <button
@@ -99,8 +107,10 @@ const DispatchPage = () => {
           className={`w-full flex items-center justify-between bg-white border border-gray-200 text-gray-700 transition-all focus:ring-1 focus:ring-blue-400
             ${isMobile ? 'py-4 px-4 rounded-xl text-sm font-bold shadow-sm' : 'py-1.5 px-2 text-[11px] font-medium rounded'}`}
         >
-          <span className="truncate">
-            {selectedRider ? (selectedRider.fullName || selectedRider.name) : `Select Rider (${riders.length})`}
+          <span className="truncate flex items-center gap-1.5">
+            {selectedRider
+              ? <><span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />{selectedRider.fullName || selectedRider.name}</>
+              : `Select Rider (${onlineRiders.length} online)`}
           </span>
           <div className="flex items-center gap-1 ml-2">
              <User size={isMobile ? 18 : 12} className="text-gray-400" />
@@ -111,7 +121,7 @@ const DispatchPage = () => {
         {isOpen && (
           <div className="absolute z-[9999] left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden min-w-[200px]">
             <div className="max-h-60 overflow-y-auto">
-               <div 
+               <div
                 onMouseDown={() => {
                   setSelectedRiders(prev => ({...prev, [orderId]: ""}));
                   setActiveDropdown(null);
@@ -120,7 +130,12 @@ const DispatchPage = () => {
               >
                 Clear Selection
               </div>
-              {riders.map(rider => (
+              {onlineRiders.length === 0 && (
+                <div className="px-4 py-5 text-center text-gray-400 text-[11px] italic">
+                  No riders are currently online.
+                </div>
+              )}
+              {onlineRiders.map(rider => (
                 <div
                   key={rider.id}
                   onMouseDown={() => {
@@ -131,7 +146,10 @@ const DispatchPage = () => {
                     ${selectedRiderId === rider.id ? 'bg-blue-600 text-white' : 'text-gray-700'}
                     ${isMobile ? 'text-sm font-bold' : 'text-[11px] font-medium'}`}
                 >
-                  {rider.fullName || rider.name}
+                  <span className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
+                    {rider.fullName || rider.name}
+                  </span>
                 </div>
               ))}
             </div>
@@ -201,8 +219,8 @@ const DispatchPage = () => {
              <h2 className="text-3xl font-black text-[#111827]">{pendingCount}</h2>
            </div>
            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-             <p className="text-gray-400 font-bold text-[10px] uppercase tracking-widest mb-2">Riders Available</p>
-             <h2 className="text-3xl font-black text-[#111827]">{riders.length}</h2>
+             <p className="text-gray-400 font-bold text-[10px] uppercase tracking-widest mb-2">Riders Online</p>
+             <h2 className="text-3xl font-black text-[#111827]">{riders.filter(r => r.isOnline === true).length}</h2>
            </div>
         </div>
 
