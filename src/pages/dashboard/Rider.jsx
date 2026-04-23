@@ -3,19 +3,18 @@ import {
   Plus, UserCircle, X, Trash2, Search, ChevronLeft, ChevronRight, 
   Truck, Menu, Check
 } from 'lucide-react';
-// Import Firebase tools
-import { db } from '../../services/firebase-config'; 
+import { db, app } from '../../services/firebase-config'; 
 import { collection, addDoc, onSnapshot, query, deleteDoc, doc } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 const RiderDirectory = () => {
-  // --- STATES ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false); 
   const [riders, setRiders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Form State
   const [formData, setFormData] = useState({
     riderId: "RDR-0001",
     fullName: "",
@@ -27,7 +26,6 @@ const RiderDirectory = () => {
     status: "Active"
   });
 
-  // --- FETCH DATA FROM FIREBASE ---
   useEffect(() => {
     const q = query(collection(db, "riders"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -42,12 +40,10 @@ const RiderDirectory = () => {
     return () => unsubscribe();
   }, []);
 
-  // --- HANDLE INPUT CHANGE ---
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- SAVE RIDER TO FIREBASE ---
   const handleSaveRider = async (e) => {
     e.preventDefault();
     if (!formData.fullName || !formData.email || !formData.password) {
@@ -56,6 +52,14 @@ const RiderDirectory = () => {
     }
 
     try {
+      // 1. Create Auth Account using a secondary app instance (prevents Admin from being logged out)
+      const secondaryApp = initializeApp(app.options, "SecondaryApp" + Date.now());
+      const secondaryAuth = getAuth(secondaryApp);
+      
+      await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
+      await secondaryAuth.signOut(); // Clean up
+
+      // 2. Save Rider Profile to Firestore
       await addDoc(collection(db, "riders"), formData);
       
       setFormData({
@@ -73,18 +77,16 @@ const RiderDirectory = () => {
 
     } catch (error) {
       console.error("Error adding rider: ", error);
-      alert("Failed to save rider.");
+      alert("Failed to save rider: " + error.message);
     }
   };
 
-  // --- DELETE RIDER ---
   const handleDelete = async (id) => {
     if(window.confirm("Are you sure you want to delete this rider?")) {
       await deleteDoc(doc(db, "riders", id));
     }
   };
 
-  // Filter Logic for Search
   const filteredRiders = riders.filter(rider => 
     rider.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     rider.riderId?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -93,7 +95,6 @@ const RiderDirectory = () => {
   return (
     <div className="min-h-screen bg-white md:bg-[#F9FAFB] font-sans">
       
-      {/* --- MOBILE HEADER --- */}
       <div className="lg:hidden flex items-center px-6 py-4 border-b border-gray-100 bg-white">
         <div className="flex items-center gap-4">
           <button 
@@ -110,7 +111,6 @@ const RiderDirectory = () => {
       </div>
 
       <div className="p-4 md:p-10 max-w-7xl mx-auto">
-        {/* DESKTOP HEADER */}
         <div className="hidden lg:flex justify-between items-start md:items-center gap-4 mb-12">
             <h1 className="text-4xl font-extrabold text-[#1F2937] tracking-tight">Rider Directory</h1>
             <div className="flex items-center gap-3">
@@ -119,7 +119,6 @@ const RiderDirectory = () => {
             </div>
         </div>
 
-        {/* MOBILE CONTROLS */}
         <div className="lg:hidden space-y-4 mb-8">
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -140,7 +139,6 @@ const RiderDirectory = () => {
             </button>
         </div>
 
-        {/* DESKTOP CONTROLS */}
         <div className="hidden lg:flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold text-[#4B5563]">Account Management</h2>
             <button 
@@ -152,7 +150,6 @@ const RiderDirectory = () => {
             </button>
         </div>
 
-        {/* --- MAIN CONTAINER --- */}
         <div className="bg-white lg:rounded-lg lg:shadow-sm lg:border lg:border-gray-200 overflow-hidden">
             <div className="hidden lg:flex px-6 py-4 justify-between items-center border-b border-gray-100">
                 <h2 className="text-lg font-bold text-[#2D3748]">All Registered Riders</h2>
@@ -168,7 +165,6 @@ const RiderDirectory = () => {
                 </div>
             </div>
 
-            {/* DESKTOP VIEW (TABLE) */}
             <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
@@ -218,7 +214,6 @@ const RiderDirectory = () => {
                 </table>
             </div>
 
-            {/* MOBILE VIEW (BOXES) */}
             <div className="lg:hidden flex flex-col gap-6">
             {filteredRiders.length > 0 ? (
                 filteredRiders.map((rider) => (
@@ -271,7 +266,6 @@ const RiderDirectory = () => {
             )}
             </div>
 
-            {/* PAGINATION FOOTER */}
             <div className="px-6 py-8 md:py-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wider text-center sm:text-left">
                     Showing <span className="text-gray-600 font-bold">1</span> to <span className="text-gray-600 font-bold">{filteredRiders.length}</span> of {filteredRiders.length} entries
@@ -284,7 +278,6 @@ const RiderDirectory = () => {
         </div>
       </div>
 
-      {/* --- ADD RIDER MODAL --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md my-8 overflow-hidden transform transition-all">
@@ -334,7 +327,6 @@ const RiderDirectory = () => {
         </div>
       )}
 
-      {/* --- CUSTOM SUCCESS MODAL --- */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
           <div className="bg-white rounded-lg p-8 shadow-xl max-w-sm w-full mx-4 text-center">
