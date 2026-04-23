@@ -52,8 +52,12 @@ const DispatchPage = () => {
     const selectedRider = riders.find(r => r.id === selectedRiderDocId);
     if (!selectedRider) return;
 
-    try {
-      await updateDoc(doc(db, "orders", orderId), {
+   try {
+  console.log("=== DISPATCH DEBUG ===");
+  console.log("selectedRider.id:", selectedRider.id);
+  console.log("selectedRider.riderId:", selectedRider.riderId);
+  console.log("Full rider:", JSON.stringify(selectedRider));
+  await updateDoc(doc(db, "orders", orderId), {
         // Use Firestore document ID so the Flutter app can fetch the rider doc directly
         assignedRiderId: selectedRider.id,
         riderId: selectedRider.riderId || selectedRider.id,
