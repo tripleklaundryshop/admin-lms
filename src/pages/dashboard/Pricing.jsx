@@ -24,6 +24,8 @@ export default function Pricing() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [packages, setPackages]   = useState(DEFAULT_PACKAGES);
   const [fees, setFees]           = useState({ delivery_fee: 20, heavy_garment_fee: 50 });
+  const [addons, setAddons]       = useState({ Surf: 15, Downy: 12, Del: 13, Ariel: 15, Breeze: 20 });
+  const [serviceAreas, setServiceAreas] = useState("Cogon Pardo, Basak San Nicolas, Mambaling");
   const [expandedId, setExpandedId] = useState(null);
   const [nextId, setNextId]       = useState(200);
 
@@ -40,6 +42,8 @@ export default function Pricing() {
             delivery_fee:      data.delivery_fee      ?? 20,
             heavy_garment_fee: data.heavy_garment_fee ?? 50,
           });
+          if (data.addons) setAddons(data.addons);
+          if (data.service_areas) setServiceAreas(data.service_areas.join(", "));
         }
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
@@ -54,6 +58,8 @@ export default function Pricing() {
         packages,
         delivery_fee:      Number(fees.delivery_fee)      || 0,
         heavy_garment_fee: Number(fees.heavy_garment_fee) || 0,
+        addons,
+        service_areas: serviceAreas.split(',').map(s => s.trim()).filter(s => s)
       });
       setShowSuccess(true);
     } catch (err) {
@@ -111,12 +117,10 @@ export default function Pricing() {
 
     return (
       <div className="border border-gray-200 rounded-xl overflow-hidden">
-        {/* Row header */}
         <div
           className="flex items-center gap-2 px-4 py-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors select-none"
           onClick={() => setExpandedId(isOpen ? null : pkg.id)}
         >
-          {/* Reorder */}
           <div className="flex flex-col shrink-0" onClick={e => e.stopPropagation()}>
             <button type="button" onClick={() => move(globalIndex, -1)} className="text-gray-300 hover:text-gray-600 leading-none py-0.5"><ChevronUp size={13}/></button>
             <button type="button" onClick={() => move(globalIndex,  1)} className="text-gray-300 hover:text-gray-600 leading-none py-0.5"><ChevronDown size={13}/></button>
@@ -138,7 +142,6 @@ export default function Pricing() {
           <ChevronDown size={15} className={`text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
 
-        {/* Edit form */}
         {isOpen && (
           <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -201,7 +204,6 @@ export default function Pricing() {
     <div className="min-h-screen bg-gray-50 lg:bg-transparent">
       <style>{`input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}input[type=number]{-moz-appearance:textfield}`}</style>
 
-      {/* Mobile header */}
       <div className="lg:hidden bg-white border-b border-gray-200 p-4 mb-4 flex items-center gap-4 sticky top-0 z-40">
         <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
           <Menu size={24} />
@@ -209,7 +211,6 @@ export default function Pricing() {
         <h1 className="text-xl font-black text-[#001D3D] uppercase tracking-tight">Update Pricing</h1>
       </div>
 
-      {/* Success modal */}
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center">
@@ -223,13 +224,11 @@ export default function Pricing() {
 
       <form onSubmit={handleSave} className="p-4 lg:p-8 max-w-4xl space-y-6">
 
-        {/* Desktop header */}
         <div className="hidden lg:block">
           <h1 className="text-2xl font-bold text-gray-800">Update Pricing</h1>
           <p className="text-gray-500 text-sm mt-1">Add, remove, rename, or reprice any package — changes reflect immediately on the homepage and booking screen.</p>
         </div>
 
-        {/* Wash Packages */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -253,7 +252,6 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Comforters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -271,7 +269,6 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Fees */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Truck size={18} className="text-green-600" />
@@ -299,7 +296,43 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Save bar */}
+        {/* Add-ons & Service Areas */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Package size={18} className="text-orange-600" />
+            <h2 className="text-base font-bold text-gray-800">Add-ons & Service Areas</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Add-on Prices (₱)</label>
+              <div className="grid grid-cols-2 gap-3">
+                {Object.keys(addons).map(key => (
+                  <div key={key} className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 w-16">{key}</span>
+                    <input
+                      type="number"
+                      value={addons[key]}
+                      onChange={e => setAddons(prev => ({ ...prev, [key]: parseInt(e.target.value) || 0 }))}
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Allowed Service Areas</label>
+              <p className="text-xs text-gray-400 mb-2">Separate barangays with commas</p>
+              <textarea
+                value={serviceAreas}
+                onChange={e => setServiceAreas(e.target.value)}
+                rows="4"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                placeholder="e.g. Cogon Pardo, Basak San Nicolas"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-amber-600 text-xs bg-amber-50 px-3 py-2 rounded-lg w-full sm:w-auto">
             <AlertCircle size={14} />
@@ -314,4 +347,3 @@ export default function Pricing() {
       </form>
     </div>
   );
-}
