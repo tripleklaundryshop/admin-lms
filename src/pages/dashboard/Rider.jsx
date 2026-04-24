@@ -4,7 +4,7 @@ import {
   Truck, Menu, Check
 } from 'lucide-react';
 import { db, app } from '../../services/firebase-config'; 
-import { collection, addDoc, onSnapshot, query, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, deleteDoc, doc, orderBy } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
@@ -26,6 +26,16 @@ const RiderDirectory = () => {
     status: "Active"
   });
 
+  // Compute the next RDR-XXXX id from the current list
+  const getNextRiderId = (riderList) => {
+    if (riderList.length === 0) return "RDR-0001";
+    const nums = riderList
+      .map(r => parseInt((r.riderId || "").replace("RDR-", ""), 10))
+      .filter(n => !isNaN(n));
+    const max = nums.length > 0 ? Math.max(...nums) : 0;
+    return `RDR-${String(max + 1).padStart(4, "0")}`;
+  };
+
   useEffect(() => {
     const q = query(collection(db, "riders"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -35,6 +45,8 @@ const RiderDirectory = () => {
       }));
       setRiders(riderList);
       setLoading(false);
+      // Keep the form riderId in sync whenever riders change
+      setFormData(prev => ({ ...prev, riderId: getNextRiderId(riderList) }));
     });
 
     return () => unsubscribe();
@@ -62,8 +74,8 @@ const RiderDirectory = () => {
       // 2. Save Rider Profile to Firestore
       await addDoc(collection(db, "riders"), formData);
       
-      setFormData({
-        riderId: "RDR-0001",
+      setFormData(prev => ({
+        riderId: prev.riderId, // will be updated by onSnapshot listener
         fullName: "",
         email: "",
         phone: "",
@@ -71,7 +83,7 @@ const RiderDirectory = () => {
         plateNumber: "",
         motorcycleType: "",
         status: "Active"
-      });
+      }));
       setIsModalOpen(false);
       setShowSuccessModal(true);
 
@@ -287,6 +299,10 @@ const RiderDirectory = () => {
             </div>
             <form className="p-6 space-y-4" onSubmit={handleSaveRider}>
               <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Rider ID (Auto-generated)</label>
+                  <input name="riderId" type="text" value={formData.riderId} readOnly className="w-full px-4 py-2 border border-gray-100 rounded-lg text-sm bg-gray-50 text-blue-600 font-bold cursor-not-allowed outline-none" />
+                </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Full Name</label>
                   <input name="fullName" type="text" placeholder="John Doe" required onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all" />
