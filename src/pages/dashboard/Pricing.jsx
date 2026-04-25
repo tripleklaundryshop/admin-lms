@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../services/firebase-config';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import {
   Save, RefreshCw, AlertCircle, CheckCircle2, Menu,
   Plus, Trash2, GripVertical, Package, Truck, ChevronDown, ChevronUp
@@ -18,10 +18,10 @@ const DEFAULT_PACKAGES = [
   { id: 9, name: "Comforter - Queen",  price: 225, suitableFor: "Queen size comforter",  inclusions: "Deep Clean, High Heat Dry, Per piece pricing", isComforter: true },
 ];
 
-// --- FIXED: MOVED PACKAGECARD OUTSIDE TO PREVENT RE-RENDERING FOCUS ISSUES ---
+// --- HELPER COMPONENT (Outside main to prevent focus loss) ---
 const PackageCard = ({ pkg, globalIndex, isOpen, onToggle, onMove, onDelete, onUpdate }) => {
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
+    <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
       <div
         className="flex items-center gap-2 px-4 py-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors select-none"
         onClick={onToggle}
@@ -33,8 +33,8 @@ const PackageCard = ({ pkg, globalIndex, isOpen, onToggle, onMove, onDelete, onU
 
         <GripVertical size={13} className="text-gray-300 shrink-0" />
 
-        <span className="flex-1 text-sm font-semibold text-gray-800 truncate">{pkg.name || 'Unnamed'}</span>
-        <span className="text-sm font-bold text-blue-600 shrink-0 mr-2">₱{pkg.price}</span>
+        <span className="flex-1 text-sm font-semibold text-gray-800 truncate">{pkg.name || 'Unnamed Package'}</span>
+        <span className="text-sm font-bold text-[#007AB9] shrink-0 mr-2">₱{pkg.price}</span>
 
         <button
           type="button"
@@ -83,7 +83,7 @@ const PackageCard = ({ pkg, globalIndex, isOpen, onToggle, onMove, onDelete, onU
               value={pkg.suitableFor}
               onChange={e => onUpdate(pkg.id, 'suitableFor', e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-              placeholder="e.g. 5-5.5 kg of laundry"
+              placeholder="e.g. 1-2 kg of laundry"
             />
           </div>
 
@@ -96,7 +96,7 @@ const PackageCard = ({ pkg, globalIndex, isOpen, onToggle, onMove, onDelete, onU
               value={pkg.inclusions}
               onChange={e => onUpdate(pkg.id, 'inclusions', e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-              placeholder="e.g. 4 Ariel sachets, 3 Downy sachets, Wash + Dry + Fold"
+              placeholder="e.g. Wash + Dry + Fold"
             />
           </div>
         </div>
@@ -116,25 +116,29 @@ export default function Pricing() {
   const [expandedId, setExpandedId] = useState(null);
   const [nextId, setNextId]       = useState(200);
 
+  // REAL-TIME UPDATES: Automatically sync state when Firebase changes
   useEffect(() => {
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, 'settings', 'pricing'));
-        if (snap.exists()) {
-          const data = snap.data();
-          if (Array.isArray(data.packages) && data.packages.length > 0) {
-            setPackages(data.packages);
-          }
-          setFees({
-            delivery_fee:      data.delivery_fee      ?? 20,
-            heavy_garment_fee: data.heavy_garment_fee ?? 50,
-          });
-          if (data.addons) setAddons(data.addons);
-          if (data.service_areas) setServiceAreas(data.service_areas.join(", "));
+    const docRef = doc(db, 'settings', 'pricing');
+    const unsubscribe = onSnapshot(docRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (Array.isArray(data.packages) && data.packages.length > 0) {
+          setPackages(data.packages);
         }
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
-    })();
+        setFees({
+          delivery_fee:      data.delivery_fee      ?? 20,
+          heavy_garment_fee: data.heavy_garment_fee ?? 50,
+        });
+        if (data.addons) setAddons(data.addons);
+        if (data.service_areas) setServiceAreas(data.service_areas.join(", "));
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error("Pricing real-time listener failed:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
   }, []);
 
   const handleSave = async (e) => {
@@ -165,8 +169,7 @@ export default function Pricing() {
   };
 
   const addPackage = (isComforter) => {
-    const id = nextId;
-    setNextId(n => n + 1);
+    const id = Date.now(); // More unique ID
     const newPkg = {
       id,
       name: isComforter ? 'New Comforter Type' : 'New Package',
@@ -191,7 +194,7 @@ export default function Pricing() {
 
   if (loading) return (
     <div className="p-8 flex justify-center items-center min-h-[60vh]">
-      <RefreshCw className="animate-spin text-blue-500" size={32} />
+      <RefreshCw className="animate-spin text-[#007AB9]" size={32} />
     </div>
   );
 
@@ -202,6 +205,7 @@ export default function Pricing() {
     <div className="min-h-screen bg-gray-50 lg:bg-transparent">
       <style>{`input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}input[type=number]{-moz-appearance:textfield}`}</style>
 
+      {/* Mobile Header */}
       <div className="lg:hidden bg-white border-b border-gray-200 p-4 mb-4 flex items-center gap-4 sticky top-0 z-40">
         <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
           <Menu size={24} />
@@ -209,24 +213,26 @@ export default function Pricing() {
         <h1 className="text-xl font-black text-[#001D3D] uppercase tracking-tight">Update Pricing</h1>
       </div>
 
+      {/* Success Modal */}
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center">
             <div className="bg-green-100 p-3 rounded-full mb-4"><CheckCircle2 className="text-green-600" size={48} /></div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Prices Updated!</h3>
-            <p className="text-gray-500 mb-6">Changes are now live in the customer app — homepage and booking screen updated automatically.</p>
+            <p className="text-gray-500 mb-6">Changes are now live in real-time in the customer app.</p>
             <button onClick={() => setShowSuccess(false)} className="w-full bg-[#007AB9] text-white font-bold py-3 rounded-xl hover:bg-[#006494] transition-colors">Okay</button>
           </div>
         </div>
       )}
 
       <form onSubmit={handleSave} className="p-4 lg:p-8 max-w-4xl space-y-6">
-
+        
         <div className="hidden lg:block">
           <h1 className="text-2xl font-bold text-gray-800">Update Pricing</h1>
-          <p className="text-gray-500 text-sm mt-1">Add, remove, rename, or reprice any package — changes reflect immediately on the homepage and booking screen.</p>
+          <p className="text-gray-500 text-sm mt-1">Updates are applied in real-time across all active customer apps.</p>
         </div>
 
+        {/* Wash Packages */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -238,29 +244,24 @@ export default function Pricing() {
               <Plus size={13}/> Add Package
             </button>
           </div>
-          <p className="text-xs text-gray-400 mb-4">Click a row to edit. Use arrows to reorder. All changes go live when you save.</p>
+          <p className="text-xs text-gray-400 mb-4">Reorder using arrows. Click a row to expand details.</p>
           <div className="space-y-2">
-            {washPkgs.length === 0 ? (
-              <p className="text-center text-gray-400 text-sm py-8 italic border-2 border-dashed border-gray-200 rounded-xl">
-                No wash packages yet — click "Add Package" to create one.
-              </p>
-            ) : (
-              washPkgs.map(pkg => (
-                <PackageCard 
-                  key={pkg.id} 
-                  pkg={pkg} 
-                  globalIndex={packages.findIndex(p => p.id === pkg.id)}
-                  isOpen={expandedId === pkg.id}
-                  onToggle={() => setExpandedId(expandedId === pkg.id ? null : pkg.id)}
-                  onMove={move}
-                  onDelete={deletePkg}
-                  onUpdate={updatePkg}
-                />
-              ))
-            )}
+            {washPkgs.map(pkg => (
+              <PackageCard 
+                key={pkg.id} 
+                pkg={pkg} 
+                globalIndex={packages.findIndex(p => p.id === pkg.id)}
+                isOpen={expandedId === pkg.id}
+                onToggle={() => setExpandedId(expandedId === pkg.id ? null : pkg.id)}
+                onMove={move}
+                onDelete={deletePkg}
+                onUpdate={updatePkg}
+              />
+            ))}
           </div>
         </div>
 
+        {/* Comforter Packages */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -272,7 +273,7 @@ export default function Pricing() {
               <Plus size={13}/> Add Comforter
             </button>
           </div>
-          <p className="text-xs text-gray-400 mb-4">Priced per individual piece regardless of weight.</p>
+          <p className="text-xs text-gray-400 mb-4">Individual piece pricing.</p>
           <div className="space-y-2">
             {comforterPkgs.map(pkg => (
               <PackageCard 
@@ -289,75 +290,69 @@ export default function Pricing() {
           </div>
         </div>
 
+        {/* Fees */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Truck size={18} className="text-green-600" />
             <h2 className="text-base font-bold text-gray-800">Service Fees</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { label: 'Delivery Fee (Fixed)', key: 'delivery_fee' },
-              { label: 'Heavy Garment Fee',    key: 'heavy_garment_fee' },
-            ].map(f => (
-              <div key={f.key}>
-                <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{f.label}</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm pointer-events-none">₱</span>
-                  <input
-                    type="number"
-                    value={fees[f.key]}
-                    onChange={e => setFees(prev => ({ ...prev, [f.key]: parseInt(e.target.value) || 0 }))}
-                    onFocus={e => e.target.select()}
-                    className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-400"
-                  />
-                </div>
+            <div>
+              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Delivery Fee (Fixed)</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm pointer-events-none">₱</span>
+                <input
+                  type="number"
+                  value={fees.delivery_fee}
+                  onChange={e => setFees(prev => ({ ...prev, delivery_fee: parseInt(e.target.value) || 0 }))}
+                  className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-400"
+                />
               </div>
-            ))}
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Heavy Garment Fee</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm pointer-events-none">₱</span>
+                <input
+                  type="number"
+                  value={fees.heavy_garment_fee}
+                  onChange={e => setFees(prev => ({ ...prev, heavy_garment_fee: parseInt(e.target.value) || 0 }))}
+                  className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Areas */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Package size={18} className="text-orange-600" />
-            <h2 className="text-base font-bold text-gray-800">Add-ons & Service Areas</h2>
+            <h2 className="text-base font-bold text-gray-800">Service Areas</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Add-on Prices (₱)</label>
-              <div className="grid grid-cols-2 gap-3">
-                {Object.keys(addons).map(key => (
-                  <div key={key} className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600 w-16">{key}</span>
-                    <input
-                      type="number"
-                      value={addons[key]}
-                      onChange={e => setAddons(prev => ({ ...prev, [key]: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-400"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Allowed Service Areas</label>
-              <p className="text-xs text-gray-400 mb-2">Separate barangays with commas</p>
-              <textarea
-                value={serviceAreas}
-                onChange={e => setServiceAreas(e.target.value)}
-                rows="4"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-                placeholder="e.g. Cogon Pardo, Basak San Nicolas"
-              />
-            </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-2">Enter barangays separated by commas.</p>
+            <textarea
+              value={serviceAreas}
+              onChange={e => setServiceAreas(e.target.value)}
+              rows="3"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+              placeholder="e.g. Mambaling, Basak Pardo, Tabada"
+            />
           </div>
         </div>
 
+        {/* Footer Actions */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-amber-600 text-xs bg-amber-50 px-3 py-2 rounded-lg w-full sm:w-auto">
             <AlertCircle size={14} />
-            <span>Saving overwrites all packages. Double-check before saving.</span>
+            <span>Changes reflect immediately after saving.</span>
           </div>
-          <button type="submit" disabled={saving} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#007AB9] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-[#006494] transition-colors disabled:opacity-60">
+          <button 
+            type="submit" 
+            disabled={saving} 
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#007AB9] text-white px-10 py-2.5 rounded-lg font-bold hover:bg-[#006494] transition-colors disabled:opacity-60"
+          >
             {saving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
             {saving ? 'Saving...' : 'Save All Changes'}
           </button>
