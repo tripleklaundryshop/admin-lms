@@ -14,6 +14,7 @@ const Pricing = () => {
   const [addons, setAddons] = useState({ Surf: 15, Downy: 12, Del: 13, Ariel: 15, Breeze: 20 });
   const [serviceAreas, setServiceAreas] = useState("");
 
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPkg, setEditingPkg] = useState(null);
 
@@ -72,7 +73,7 @@ const Pricing = () => {
   };
 
   const closeAndSaveModal = () => {
-    const isConfirmed = window.confirm("Update this service?");
+    const isConfirmed = window.confirm("Are you sure you want to update this service?");
     if (!isConfirmed) return;
     let newPackages;
     const exists = packages.find(p => p.id === editingPkg.id);
@@ -106,12 +107,12 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       
-      {/* MOBILE HEADER - Keeps sidebar toggle visible */}
+      {/* STICKY MOBILE HEADER - Ensures Sidebar Toggle is always accessible */}
       <div className="md:hidden flex items-center gap-4 bg-white p-4 border-b border-gray-200 sticky top-0 z-40">
         <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
           <Menu size={24} />
         </button>
-        <h1 className="text-lg font-bold text-[#001D3D] truncate">Update Pricing</h1>
+        <h1 className="text-lg font-bold text-[#001D3D] truncate">Pricing Dashboard</h1>
       </div>
 
       <div className="p-3 md:p-8 max-w-6xl mx-auto space-y-6">
@@ -128,7 +129,7 @@ const Pricing = () => {
         {/* SERVICES CONTAINER */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
           
-          {/* DESKTOP TABLE VIEW (Visible on tablets and computers) */}
+          {/* DESKTOP TABLE VIEW */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left min-w-[700px]">
               <thead>
@@ -154,7 +155,7 @@ const Pricing = () => {
             </table>
           </div>
 
-          {/* MOBILE LIST VIEW (Visible on Phones - Match the screenshot) */}
+          {/* MOBILE LIST VIEW (Pencil below Trash as requested) */}
           <div className="md:hidden divide-y divide-gray-100">
             <div className="grid grid-cols-2 py-4 px-6 bg-gray-50/50 border-b border-gray-100">
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target Details</div>
@@ -164,15 +165,16 @@ const Pricing = () => {
               <div className="p-10 text-center text-xs text-gray-400">No services added yet.</div>
             ) : (
               filteredData.map((pkg) => (
-                <div key={pkg.id} onClick={() => openEditModal(pkg)} className="grid grid-cols-12 items-center py-5 px-6 active:bg-gray-50 transition-colors">
+                <div key={pkg.id} className="grid grid-cols-12 items-center py-6 px-6 active:bg-gray-50 transition-colors">
                   <div className="col-span-9 pr-2">
                     <p className="text-sm font-bold text-gray-800">{pkg.name}</p>
-                    <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{pkg.suitableFor || "—"}</p>
+                    <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">{pkg.suitableFor || "—"}</p>
                   </div>
-                  <div className="col-span-3 text-right">
+                  <div className="col-span-3 flex flex-col items-end gap-4">
                     <p className="text-sm font-black text-gray-800">₱{pkg.price}</p>
-                    <div className="flex justify-end gap-3 mt-2 text-gray-300">
-                       <button onClick={(e) => { e.stopPropagation(); deletePackage(pkg.id); }} className="hover:text-red-500"><Trash2 size={14}/></button>
+                    <div className="flex flex-col items-center gap-4 text-gray-300">
+                       <button onClick={(e) => { e.stopPropagation(); deletePackage(pkg.id); }} className="hover:text-red-500 p-1"><Trash2 size={16}/></button>
+                       <button onClick={(e) => { e.stopPropagation(); openEditModal(pkg); }} className="hover:text-blue-600 p-1"><Pencil size={16}/></button>
                     </div>
                   </div>
                 </div>
