@@ -51,7 +51,6 @@ const Pricing = () => {
   const handleUpdateConfig = async (message) => {
     const isConfirmed = window.confirm(message || "Save changes to this configuration?");
     if (!isConfirmed) return;
-    
     await handleSaveToFirebase();
     alert("Updated successfully!");
   };
@@ -75,7 +74,6 @@ const Pricing = () => {
   const closeAndSaveModal = () => {
     const isConfirmed = window.confirm("Update this service?");
     if (!isConfirmed) return;
-
     let newPackages;
     const exists = packages.find(p => p.id === editingPkg.id);
     if (exists) {
@@ -83,7 +81,6 @@ const Pricing = () => {
     } else {
       newPackages = [...packages, editingPkg];
     }
-
     setPackages(newPackages);
     handleSaveToFirebase(newPackages);
     setIsModalOpen(false);
@@ -107,104 +104,130 @@ const Pricing = () => {
   const filteredData = packages.filter(p => activeTab === 'wash' ? !p.isComforter : p.isComforter);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-3 md:p-8">
+    <div className="min-h-screen bg-[#F8FAFC]">
       
-      {/* HEADER & TABS */}
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
-        <div className="flex bg-gray-200/50 p-1 rounded-xl w-full md:w-auto">
-          <button onClick={() => setActiveTab('wash')} className={`flex-1 md:flex-none px-8 py-2.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'wash' ? 'bg-white text-[#0d6efd] shadow-sm' : 'text-gray-500'}`}>WASH PACKAGES</button>
-          <button onClick={() => setActiveTab('comforter')} className={`flex-1 md:flex-none px-8 py-2.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'comforter' ? 'bg-white text-[#0d6efd] shadow-sm' : 'text-gray-500'}`}>COMFORTERS</button>
-        </div>
-        <button onClick={() => openEditModal()} className="w-full md:w-auto bg-[#0d6efd] text-white px-6 py-2.5 rounded-md text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#0b5ed7] transition-all"><Plus size={16} /> ADD SERVICE</button>
+      {/* MOBILE HEADER - Keeps sidebar toggle visible */}
+      <div className="md:hidden flex items-center gap-4 bg-white p-4 border-b border-gray-200 sticky top-0 z-40">
+        <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+          <Menu size={24} />
+        </button>
+        <h1 className="text-lg font-bold text-[#001D3D] truncate">Update Pricing</h1>
       </div>
 
-      {/* TABLE */}
-      <div className="max-w-6xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-8">
-        <div className="overflow-x-auto scrollbar-hide">
-          <table className="w-full text-left min-w-[700px]">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="py-4 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Service Name</th>
-                <th className="py-4 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Target Details</th>
-                <th className="py-4 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Rate (₱)</th>
-                <th className="py-4 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Status</th>
-                <th className="py-4 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredData.map((pkg) => (
-                <tr key={pkg.id} className="hover:bg-gray-50/30 transition-colors">
-                  <td className="py-3 px-6"><div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-green-500 shrink-0" /><span className="text-sm font-semibold text-gray-800">{pkg.name}</span></div></td>
-                  <td className="py-3 px-4 text-xs text-gray-500 truncate max-w-[250px]">{pkg.suitableFor || "—"}</td>
-                  <td className="py-3 px-4"><span className="text-sm font-bold text-gray-700">₱{pkg.price}</span></td>
-                  <td className="py-3 px-4 text-center"><span className="bg-green-100 text-green-700 text-[9px] font-bold px-2 py-1 rounded">ACTIVE</span></td>
-                  <td className="py-3 px-4"><div className="flex justify-center gap-4"><button onClick={() => openEditModal(pkg)} className="text-gray-400 hover:text-blue-600 p-1"><Pencil size={16}/></button><button onClick={() => deletePackage(pkg.id)} className="text-gray-400 hover:text-red-500 p-1"><Trash2 size={16}/></button></div></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* BOTTOM CONFIGS (FEES & AREAS) */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
+      <div className="p-3 md:p-8 max-w-6xl mx-auto space-y-6">
         
-        {/* Card 1: Service Fees with Internal Button */}
-        <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
-          <div>
-            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-10">Service Fees</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] text-gray-500 font-bold block uppercase">Delivery Fee</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₱</span>
-                  <input type="number" value={fees.delivery_fee} onChange={e => setFees({...fees, delivery_fee: e.target.value})} className="w-full border border-gray-200 rounded px-8 py-2.5 text-sm font-bold text-gray-700 outline-none focus:ring-1 focus:ring-blue-100"/>
+        {/* HEADER & TABS */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex bg-gray-200/50 p-1 rounded-xl w-full md:w-auto">
+            <button onClick={() => setActiveTab('wash')} className={`flex-1 md:flex-none px-6 py-2.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'wash' ? 'bg-white text-[#0d6efd] shadow-sm' : 'text-gray-500'}`}>WASH PACKAGES</button>
+            <button onClick={() => setActiveTab('comforter')} className={`flex-1 md:flex-none px-6 py-2.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'comforter' ? 'bg-white text-[#0d6efd] shadow-sm' : 'text-gray-500'}`}>COMFORTERS</button>
+          </div>
+          <button onClick={() => openEditModal()} className="w-full md:w-auto bg-[#0d6efd] text-white px-6 py-2.5 rounded-md text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#0b5ed7] transition-all"><Plus size={16} /> ADD SERVICE</button>
+        </div>
+
+        {/* SERVICES CONTAINER */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          
+          {/* DESKTOP TABLE VIEW (Visible on tablets and computers) */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left min-w-[700px]">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="py-4 px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Service Name</th>
+                  <th className="py-4 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Target Details</th>
+                  <th className="py-4 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Rate (₱)</th>
+                  <th className="py-4 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Status</th>
+                  <th className="py-4 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredData.map((pkg) => (
+                  <tr key={pkg.id} className="hover:bg-gray-50/30 transition-colors">
+                    <td className="py-3 px-6"><div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-green-500 shrink-0" /><span className="text-sm font-semibold text-gray-800">{pkg.name}</span></div></td>
+                    <td className="py-3 px-4 text-xs text-gray-500 truncate max-w-[250px]">{pkg.suitableFor || "—"}</td>
+                    <td className="py-3 px-4"><span className="text-sm font-bold text-gray-700">₱{pkg.price}</span></td>
+                    <td className="py-3 px-4 text-center"><span className="bg-green-100 text-green-700 text-[9px] font-bold px-2 py-1 rounded">ACTIVE</span></td>
+                    <td className="py-3 px-4"><div className="flex justify-center gap-4"><button onClick={() => openEditModal(pkg)} className="text-gray-400 hover:text-blue-600 p-1"><Pencil size={16}/></button><button onClick={() => deletePackage(pkg.id)} className="text-gray-400 hover:text-red-500 p-1"><Trash2 size={16}/></button></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* MOBILE LIST VIEW (Visible on Phones - Match the screenshot) */}
+          <div className="md:hidden divide-y divide-gray-100">
+            <div className="grid grid-cols-2 py-4 px-6 bg-gray-50/50 border-b border-gray-100">
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target Details</div>
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Rate (₱)</div>
+            </div>
+            {filteredData.length === 0 ? (
+              <div className="p-10 text-center text-xs text-gray-400">No services added yet.</div>
+            ) : (
+              filteredData.map((pkg) => (
+                <div key={pkg.id} onClick={() => openEditModal(pkg)} className="grid grid-cols-12 items-center py-5 px-6 active:bg-gray-50 transition-colors">
+                  <div className="col-span-9 pr-2">
+                    <p className="text-sm font-bold text-gray-800">{pkg.name}</p>
+                    <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{pkg.suitableFor || "—"}</p>
+                  </div>
+                  <div className="col-span-3 text-right">
+                    <p className="text-sm font-black text-gray-800">₱{pkg.price}</p>
+                    <div className="flex justify-end gap-3 mt-2 text-gray-300">
+                       <button onClick={(e) => { e.stopPropagation(); deletePackage(pkg.id); }} className="hover:text-red-500"><Trash2 size={14}/></button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] text-gray-500 font-bold block uppercase">Heavy Garment</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₱</span>
-                  <input type="number" value={fees.heavy_garment_fee} onChange={e => setFees({...fees, heavy_garment_fee: e.target.value})} className="w-full border border-gray-200 rounded px-8 py-2.5 text-sm font-bold text-gray-700 outline-none focus:ring-1 focus:ring-blue-100"/>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* BOTTOM CONFIGS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
+          {/* Service Fees */}
+          <div className="bg-white p-6 md:p-8 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-8">Service Fees</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-500 font-bold block uppercase">Delivery Fee</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₱</span>
+                    <input type="number" value={fees.delivery_fee} onChange={e => setFees({...fees, delivery_fee: e.target.value})} className="w-full border border-gray-200 rounded px-8 py-2.5 text-sm font-bold text-gray-700 outline-none focus:ring-1 focus:ring-blue-100"/>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-500 font-bold block uppercase">Heavy Garment</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₱</span>
+                    <input type="number" value={fees.heavy_garment_fee} onChange={e => setFees({...fees, heavy_garment_fee: e.target.value})} className="w-full border border-gray-200 rounded px-8 py-2.5 text-sm font-bold text-gray-700 outline-none focus:ring-1 focus:ring-blue-100"/>
+                  </div>
                 </div>
               </div>
             </div>
+            <div className="mt-8 flex justify-end">
+              <button onClick={() => handleUpdateConfig("Update Service Fees?")} className="w-full sm:w-auto bg-[#0d6efd] text-white px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#0b5ed7] transition-all flex items-center justify-center gap-2">
+                <Save size={14} /> Update Fees
+              </button>
+            </div>
           </div>
-          
-          <div className="mt-10 flex justify-end">
-            <button 
-              onClick={() => handleUpdateConfig("Update Service Fees?")}
-              className="bg-[#0d6efd] text-white px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#0b5ed7] transition-all flex items-center gap-2"
-            >
-              <Save size={14} /> Update Fees
-            </button>
-          </div>
-        </div>
 
-        {/* Card 2: Allowed Areas with Internal Button */}
-        <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
-          <div>
-            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-10">Allowed Areas</h3>
-            <textarea 
-              value={serviceAreas} 
-              onChange={e => setServiceAreas(e.target.value)} 
-              className="w-full border border-gray-200 rounded-md px-4 py-4 text-xs font-medium resize-none min-h-[105px] outline-none focus:ring-1 focus:ring-blue-100" 
-              placeholder="Cogon Pardo, Basak San Nicolas, Mambaling..." 
-            />
-          </div>
-          <div className="mt-6 flex justify-end">
-            <button 
-              onClick={() => handleUpdateConfig("Update Allowed Areas?")}
-              className="bg-[#0d6efd] text-white px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#0b5ed7] transition-all flex items-center gap-2"
-            >
-              <Save size={14} /> Save Areas
-            </button>
+          {/* Allowed Areas */}
+          <div className="bg-white p-6 md:p-8 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-8">Allowed Areas</h3>
+              <textarea value={serviceAreas} onChange={e => setServiceAreas(e.target.value)} className="w-full border border-gray-200 rounded-md px-4 py-4 text-xs font-medium resize-none min-h-[100px] outline-none focus:ring-1 focus:ring-blue-100" placeholder="Cogon Pardo, Basak San Nicolas, Mambaling..." />
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => handleUpdateConfig("Update Allowed Areas?")} className="w-full sm:w-auto bg-[#0d6efd] text-white px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#0b5ed7] transition-all flex items-center justify-center gap-2">
+                <Save size={14} /> Save Areas
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* SERVICE MODAL */}
-      {isModalOpen && (editingPkg && (
+      {isModalOpen && editingPkg && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200">
           <div className="bg-white rounded-lg w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -241,7 +264,7 @@ const Pricing = () => {
             </div>
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 };
