@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../assets/styles/login.module.css";
-import { Lock, Shirt, ArrowRight, User, Eye, EyeOff } from "lucide-react";
+// Added Loader2 for the loading animation
+import { Lock, Shirt, ArrowRight, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { auth } from "../services/firebase-config.js";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
@@ -13,17 +14,36 @@ const Login = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // New Loading State
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setIsLoading(true); // Start Loading
+
+    if (rememberMe) {
+      localStorage.setItem("rememberedEmail", email);
+    } else {
+      localStorage.removeItem("rememberedEmail");
+    }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setSuccess("Login Successful! Redirecting...");
+      setIsLoading(false); // Stop Loading on success
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
+      setIsLoading(false); // Stop Loading on error
       if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
         setError("Invalid email or password.");
       } else {
@@ -35,14 +55,11 @@ const Login = () => {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* ALERTS CONTAINER */}
       <div className={styles.alertContainer}>
         {error && (
           <div className="alert alert-danger alert-dismissible fade show" role="alert">
             <strong>Error!</strong> {error}
-            <button type="button" className="btn-close" 
-            onClick={() => setError("")}>
-            </button>
+            <button type="button" className="btn-close" onClick={() => setError("")}></button>
           </div>
         )}
         {success && (
@@ -53,7 +70,6 @@ const Login = () => {
       </div>
 
       <div className={styles.mainContainer}>
-        {/* LEFT SECTION (BLUE) */}
         <div className={styles.leftSection}>
           <div className={styles.logoWrapper}>
             <div className={styles.archPart}>
@@ -68,7 +84,6 @@ const Login = () => {
           </p>
         </div>
 
-        {/* RIGHT SECTION (CREAM) */}
         <div className={styles.rightSection}>
           <div className={styles.adminAccess}>Admin Access</div>
           
@@ -95,7 +110,6 @@ const Login = () => {
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>PASSWORD</label>
-              {/* Added position relative here to contain the absolute button */}
               <div className={styles.inputWrapperGray} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <Lock className={styles.inputIconGray} size={20} />
                 <input
@@ -105,9 +119,8 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  style={{ flex: 1, paddingRight: '45px' }} // Padding right to prevent text overlap
+                  style={{ flex: 1, paddingRight: '45px' }}
                 />
-                {/* Absolute positioned Toggle Button */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -132,17 +145,52 @@ const Login = () => {
               </div>
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                style={{ cursor: 'pointer', marginRight: '8px', width: '16px', height: '16px' }}
+              />
+              <label htmlFor="rememberMe" style={{ fontSize: '14px', color: '#4b5563', cursor: 'pointer', fontWeight: '500' }}>
+                Remember Me
+              </label>
+            </div>
+
             <button 
               type="submit" 
               className={styles.accessBtn} 
-              disabled={success !== ""}
+              disabled={isLoading || success !== ""}
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
-              {success ? "Processing..." : "Access System"}
-              {!success && <ArrowRight size={20} style={{marginLeft: '10px'}} />}
+              {isLoading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" style={{ marginRight: '10px' }} />
+                  Signing in...
+                </>
+              ) : success ? (
+                "Processing..."
+              ) : (
+                <>
+                  Access System <ArrowRight size={20} style={{ marginLeft: '10px' }} />
+                </>
+              )}
             </button>
           </form>
         </div>
       </div>
+
+      {/* Added simple CSS for the spinning animation directly here */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+      `}</style>
     </div>
   );
 };
