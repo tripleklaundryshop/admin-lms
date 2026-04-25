@@ -18,6 +18,93 @@ const DEFAULT_PACKAGES = [
   { id: 9, name: "Comforter - Queen",  price: 225, suitableFor: "Queen size comforter",  inclusions: "Deep Clean, High Heat Dry, Per piece pricing", isComforter: true },
 ];
 
+// --- FIXED: MOVED PACKAGECARD OUTSIDE TO PREVENT RE-RENDERING FOCUS ISSUES ---
+const PackageCard = ({ pkg, globalIndex, isOpen, onToggle, onMove, onDelete, onUpdate }) => {
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden">
+      <div
+        className="flex items-center gap-2 px-4 py-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors select-none"
+        onClick={onToggle}
+      >
+        <div className="flex flex-col shrink-0" onClick={e => e.stopPropagation()}>
+          <button type="button" onClick={() => onMove(globalIndex, -1)} className="text-gray-300 hover:text-gray-600 leading-none py-0.5"><ChevronUp size={13}/></button>
+          <button type="button" onClick={() => onMove(globalIndex,  1)} className="text-gray-300 hover:text-gray-600 leading-none py-0.5"><ChevronDown size={13}/></button>
+        </div>
+
+        <GripVertical size={13} className="text-gray-300 shrink-0" />
+
+        <span className="flex-1 text-sm font-semibold text-gray-800 truncate">{pkg.name || 'Unnamed'}</span>
+        <span className="text-sm font-bold text-blue-600 shrink-0 mr-2">₱{pkg.price}</span>
+
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); onDelete(pkg.id); }}
+          className="text-gray-300 hover:text-red-500 transition-colors shrink-0"
+        >
+          <Trash2 size={14} />
+        </button>
+
+        <ChevronDown size={15} className={`text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Package Name</label>
+            <input
+              type="text"
+              value={pkg.name}
+              onChange={e => onUpdate(pkg.id, 'name', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              placeholder="e.g. 5-5.5 kg Load"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Price (₱)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm pointer-events-none">₱</span>
+              <input
+                type="number"
+                value={pkg.price}
+                onChange={e => onUpdate(pkg.id, 'price', parseInt(e.target.value) || 0)}
+                onFocus={e => e.target.select()}
+                className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+              Suitable For <span className="font-normal normal-case text-gray-400">(shown in app)</span>
+            </label>
+            <input
+              type="text"
+              value={pkg.suitableFor}
+              onChange={e => onUpdate(pkg.id, 'suitableFor', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              placeholder="e.g. 5-5.5 kg of laundry"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+              What's Included <span className="font-normal normal-case text-gray-400">(comma separated)</span>
+            </label>
+            <input
+              type="text"
+              value={pkg.inclusions}
+              onChange={e => onUpdate(pkg.id, 'inclusions', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              placeholder="e.g. 4 Ariel sachets, 3 Downy sachets, Wash + Dry + Fold"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function Pricing() {
   const [loading, setLoading]     = useState(true);
   const [saving, setSaving]       = useState(false);
@@ -111,95 +198,6 @@ export default function Pricing() {
   const washPkgs      = packages.filter(p => !p.isComforter);
   const comforterPkgs = packages.filter(p =>  p.isComforter);
 
-  const PackageCard = ({ pkg }) => {
-    const globalIndex = packages.findIndex(p => p.id === pkg.id);
-    const isOpen = expandedId === pkg.id;
-
-    return (
-      <div className="border border-gray-200 rounded-xl overflow-hidden">
-        <div
-          className="flex items-center gap-2 px-4 py-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors select-none"
-          onClick={() => setExpandedId(isOpen ? null : pkg.id)}
-        >
-          <div className="flex flex-col shrink-0" onClick={e => e.stopPropagation()}>
-            <button type="button" onClick={() => move(globalIndex, -1)} className="text-gray-300 hover:text-gray-600 leading-none py-0.5"><ChevronUp size={13}/></button>
-            <button type="button" onClick={() => move(globalIndex,  1)} className="text-gray-300 hover:text-gray-600 leading-none py-0.5"><ChevronDown size={13}/></button>
-          </div>
-
-          <GripVertical size={13} className="text-gray-300 shrink-0" />
-
-          <span className="flex-1 text-sm font-semibold text-gray-800 truncate">{pkg.name || 'Unnamed'}</span>
-          <span className="text-sm font-bold text-blue-600 shrink-0 mr-2">₱{pkg.price}</span>
-
-          <button
-            type="button"
-            onClick={e => { e.stopPropagation(); deletePkg(pkg.id); }}
-            className="text-gray-300 hover:text-red-500 transition-colors shrink-0"
-          >
-            <Trash2 size={14} />
-          </button>
-
-          <ChevronDown size={15} className={`text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-        </div>
-
-        {isOpen && (
-          <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Package Name</label>
-              <input
-                type="text"
-                value={pkg.name}
-                onChange={e => updatePkg(pkg.id, 'name', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-                placeholder="e.g. 5-5.5 kg Load"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Price (₱)</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm pointer-events-none">₱</span>
-                <input
-                  type="number"
-                  value={pkg.price}
-                  onChange={e => updatePkg(pkg.id, 'price', parseInt(e.target.value) || 0)}
-                  onFocus={e => e.target.select()}
-                  className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                Suitable For <span className="font-normal normal-case text-gray-400">(shown in app)</span>
-              </label>
-              <input
-                type="text"
-                value={pkg.suitableFor}
-                onChange={e => updatePkg(pkg.id, 'suitableFor', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-                placeholder="e.g. 5-5.5 kg of laundry"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                What's Included <span className="font-normal normal-case text-gray-400">(comma separated)</span>
-              </label>
-              <input
-                type="text"
-                value={pkg.inclusions}
-                onChange={e => updatePkg(pkg.id, 'inclusions', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-                placeholder="e.g. 4 Ariel sachets, 3 Downy sachets, Wash + Dry + Fold"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 lg:bg-transparent">
       <style>{`input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}input[type=number]{-moz-appearance:textfield}`}</style>
@@ -247,7 +245,18 @@ export default function Pricing() {
                 No wash packages yet — click "Add Package" to create one.
               </p>
             ) : (
-              washPkgs.map(pkg => <PackageCard key={pkg.id} pkg={pkg} />)
+              washPkgs.map(pkg => (
+                <PackageCard 
+                  key={pkg.id} 
+                  pkg={pkg} 
+                  globalIndex={packages.findIndex(p => p.id === pkg.id)}
+                  isOpen={expandedId === pkg.id}
+                  onToggle={() => setExpandedId(expandedId === pkg.id ? null : pkg.id)}
+                  onMove={move}
+                  onDelete={deletePkg}
+                  onUpdate={updatePkg}
+                />
+              ))
             )}
           </div>
         </div>
@@ -265,7 +274,18 @@ export default function Pricing() {
           </div>
           <p className="text-xs text-gray-400 mb-4">Priced per individual piece regardless of weight.</p>
           <div className="space-y-2">
-            {comforterPkgs.map(pkg => <PackageCard key={pkg.id} pkg={pkg} />)}
+            {comforterPkgs.map(pkg => (
+              <PackageCard 
+                key={pkg.id} 
+                pkg={pkg} 
+                globalIndex={packages.findIndex(p => p.id === pkg.id)}
+                isOpen={expandedId === pkg.id}
+                onToggle={() => setExpandedId(expandedId === pkg.id ? null : pkg.id)}
+                onMove={move}
+                onDelete={deletePkg}
+                onUpdate={updatePkg}
+              />
+            ))}
           </div>
         </div>
 
@@ -296,7 +316,6 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Add-ons & Service Areas */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Package size={18} className="text-orange-600" />
@@ -347,5 +366,4 @@ export default function Pricing() {
       </form>
     </div>
   );
-
 }
