@@ -98,7 +98,7 @@ const Pricing = () => {
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
       <RefreshCw className="animate-spin text-[#0d6efd]" size={32} />
-      <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading...</span>
+      <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading Dashboard...</span>
     </div>
   );
 
@@ -107,16 +107,23 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       
-      {/* STICKY MOBILE HEADER - Ensures Sidebar Toggle is always accessible */}
+      {/* STICKY MOBILE HEADER */}
       <div className="md:hidden flex items-center gap-4 bg-white p-4 border-b border-gray-200 sticky top-0 z-40">
         <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
           <Menu size={24} />
         </button>
-        <h1 className="text-lg font-bold text-[#001D3D] truncate">Pricing Dashboard</h1>
+        <h1 className="text-lg font-bold text-[#001D3D] truncate">Update Pricing</h1>
       </div>
 
       <div className="p-3 md:p-8 max-w-6xl mx-auto space-y-6">
         
+        {/* NEW PAGE TITLE SECTION */}
+        <div className="mb-8 pt-2 md:pt-0">
+          <h1 className="text-2xl font-black text-[#001D3D] uppercase tracking-tight">Update Pricing</h1>
+          <p className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">Configure your service rates and delivery settings</p>
+          <div className="h-1 w-16 bg-[#0d6efd] rounded mt-2"></div>
+        </div>
+
         {/* HEADER & TABS */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex bg-gray-200/50 p-1 rounded-xl w-full md:w-auto">
@@ -155,7 +162,7 @@ const Pricing = () => {
             </table>
           </div>
 
-          {/* MOBILE LIST VIEW (Pencil below Trash as requested) */}
+          {/* MOBILE LIST VIEW */}
           <div className="md:hidden divide-y divide-gray-100">
             <div className="grid grid-cols-2 py-4 px-6 bg-gray-50/50 border-b border-gray-100">
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target Details</div>
