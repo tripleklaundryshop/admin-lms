@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../assets/styles/login.module.css";
-// Added Eye and EyeOff icons
 import { Lock, Shirt, ArrowRight, User, Eye, EyeOff } from "lucide-react";
 import { auth } from "../services/firebase-config.js";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -13,7 +12,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  // New state for toggling password visibility
   const [showPassword, setShowPassword] = useState(false);
 
   const handleAuth = async (e) => {
@@ -97,31 +95,35 @@ const Login = () => {
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>PASSWORD</label>
-              <div className={styles.inputWrapperGray} style={{ display: 'flex', alignItems: 'center' }}>
+              {/* Added position relative here to contain the absolute button */}
+              <div className={styles.inputWrapperGray} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <Lock className={styles.inputIconGray} size={20} />
                 <input
                   className={styles.inputGray}
-                  // Type changes based on showPassword state
                   type={showPassword ? "text" : "password"}
                   placeholder=""
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, paddingRight: '45px' }} // Padding right to prevent text overlap
                 />
-                {/* Toggle Button */}
+                {/* Absolute positioned Toggle Button */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
                     color: '#6b7280',
-                    padding: '0 10px',
                     display: 'flex',
                     alignItems: 'center',
-                    outline: 'none'
+                    outline: 'none',
+                    zIndex: 2
                   }}
                   tabIndex="-1"
                 >
