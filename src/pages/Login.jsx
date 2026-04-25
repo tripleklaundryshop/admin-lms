@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../assets/styles/login.module.css";
-import { Lock, Shirt, ArrowRight, User } from "lucide-react";
+// Added Eye and EyeOff icons
+import { Lock, Shirt, ArrowRight, User, Eye, EyeOff } from "lucide-react";
 import { auth } from "../services/firebase-config.js";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
@@ -12,6 +13,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  // New state for toggling password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -94,16 +97,36 @@ const Login = () => {
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>PASSWORD</label>
-              <div className={styles.inputWrapperGray}>
+              <div className={styles.inputWrapperGray} style={{ display: 'flex', alignItems: 'center' }}>
                 <Lock className={styles.inputIconGray} size={20} />
                 <input
                   className={styles.inputGray}
-                  type="password"
+                  // Type changes based on showPassword state
+                  type={showPassword ? "text" : "password"}
                   placeholder=""
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  style={{ flex: 1 }}
                 />
+                {/* Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#6b7280',
+                    padding: '0 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    outline: 'none'
+                  }}
+                  tabIndex="-1"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
             </div>
 
