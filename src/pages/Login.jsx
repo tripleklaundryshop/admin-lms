@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../assets/styles/login.module.css";
-// Added Loader2 for the loading animation
 import { Lock, Shirt, ArrowRight, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { auth } from "../services/firebase-config.js";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -14,36 +13,21 @@ const Login = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // New Loading State
-
-  useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedEmail");
-    if (savedEmail) {
-      setEmail(savedEmail);
-      setRememberMe(true);
-    }
-  }, []);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setIsLoading(true); // Start Loading
-
-    if (rememberMe) {
-      localStorage.setItem("rememberedEmail", email);
-    } else {
-      localStorage.removeItem("rememberedEmail");
-    }
+    setIsLoading(true);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setSuccess("Login Successful! Redirecting...");
-      setIsLoading(false); // Stop Loading on success
+      setIsLoading(false);
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
-      setIsLoading(false); // Stop Loading on error
+      setIsLoading(false);
       if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
         setError("Invalid email or password.");
       } else {
@@ -145,24 +129,11 @@ const Login = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', cursor: 'pointer' }}>
-              <input 
-                type="checkbox" 
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ cursor: 'pointer', marginRight: '8px', width: '16px', height: '16px' }}
-              />
-              <label htmlFor="rememberMe" style={{ fontSize: '14px', color: '#4b5563', cursor: 'pointer', fontWeight: '500' }}>
-                Remember Me
-              </label>
-            </div>
-
             <button 
               type="submit" 
               className={styles.accessBtn} 
               disabled={isLoading || success !== ""}
-              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}
             >
               {isLoading ? (
                 <>
@@ -181,7 +152,6 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Added simple CSS for the spinning animation directly here */}
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
