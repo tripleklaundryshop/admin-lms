@@ -34,7 +34,6 @@ const Pricing = () => {
     return () => unsub();
   }, []);
 
-  // Updated main save function to handle both packages and general settings
   const handleSaveToFirebase = async (currentPackages = packages) => {
     try {
       await setDoc(doc(db, 'settings', 'pricing'), {
@@ -49,12 +48,12 @@ const Pricing = () => {
     }
   };
 
-  const handleUpdateConfig = async () => {
-    const isConfirmed = window.confirm("Save changes to Service Fees and Allowed Areas?");
+  const handleUpdateConfig = async (message) => {
+    const isConfirmed = window.confirm(message || "Save changes to this configuration?");
     if (!isConfirmed) return;
     
     await handleSaveToFirebase();
-    alert("Configuration updated successfully!");
+    alert("Updated successfully!");
   };
 
   const openEditModal = (pkg = null) => {
@@ -100,7 +99,7 @@ const Pricing = () => {
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-      <RefreshCw className="animate-spin text-blue-600" size={32} />
+      <RefreshCw className="animate-spin text-[#0d6efd]" size={32} />
       <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading...</span>
     </div>
   );
@@ -113,14 +112,14 @@ const Pricing = () => {
       {/* HEADER & TABS */}
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
         <div className="flex bg-gray-200/50 p-1 rounded-xl w-full md:w-auto">
-          <button onClick={() => setActiveTab('wash')} className={`flex-1 md:flex-none px-8 py-2.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'wash' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}>WASH PACKAGES</button>
-          <button onClick={() => setActiveTab('comforter')} className={`flex-1 md:flex-none px-8 py-2.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'comforter' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}>COMFORTERS</button>
+          <button onClick={() => setActiveTab('wash')} className={`flex-1 md:flex-none px-8 py-2.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'wash' ? 'bg-white text-[#0d6efd] shadow-sm' : 'text-gray-500'}`}>WASH PACKAGES</button>
+          <button onClick={() => setActiveTab('comforter')} className={`flex-1 md:flex-none px-8 py-2.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'comforter' ? 'bg-white text-[#0d6efd] shadow-sm' : 'text-gray-500'}`}>COMFORTERS</button>
         </div>
         <button onClick={() => openEditModal()} className="w-full md:w-auto bg-[#0d6efd] text-white px-6 py-2.5 rounded-md text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#0b5ed7] transition-all"><Plus size={16} /> ADD SERVICE</button>
       </div>
 
       {/* TABLE */}
-      <div className="max-w-6xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-12">
+      <div className="max-w-6xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-8">
         <div className="overflow-x-auto scrollbar-hide">
           <table className="w-full text-left min-w-[700px]">
             <thead>
@@ -148,49 +147,59 @@ const Pricing = () => {
       </div>
 
       {/* BOTTOM CONFIGS (FEES & AREAS) */}
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card 1: Service Fees */}
-          <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm relative">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
+        
+        {/* Card 1: Service Fees with Internal Button */}
+        <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
+          <div>
             <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-10">Service Fees</h3>
             <div className="grid grid-cols-2 gap-6">
-               <div className="space-y-2">
-                 <label className="text-[10px] text-gray-500 font-bold block uppercase">Delivery Fee</label>
-                 <div className="relative">
-                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₱</span>
-                   <input type="number" value={fees.delivery_fee} onChange={e => setFees({...fees, delivery_fee: e.target.value})} className="w-full border border-gray-200 rounded px-8 py-2.5 text-sm font-bold text-gray-700 outline-none focus:ring-1 focus:ring-blue-100"/>
-                 </div>
-               </div>
-               <div className="space-y-2">
-                 <label className="text-[10px] text-gray-500 font-bold block uppercase">Heavy Garment</label>
-                 <div className="relative">
-                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₱</span>
-                   <input type="number" value={fees.heavy_garment_fee} onChange={e => setFees({...fees, heavy_garment_fee: e.target.value})} className="w-full border border-gray-200 rounded px-8 py-2.5 text-sm font-bold text-gray-700 outline-none focus:ring-1 focus:ring-blue-100"/>
-                 </div>
-               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] text-gray-500 font-bold block uppercase">Delivery Fee</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₱</span>
+                  <input type="number" value={fees.delivery_fee} onChange={e => setFees({...fees, delivery_fee: e.target.value})} className="w-full border border-gray-200 rounded px-8 py-2.5 text-sm font-bold text-gray-700 outline-none focus:ring-1 focus:ring-blue-100"/>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] text-gray-500 font-bold block uppercase">Heavy Garment</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₱</span>
+                  <input type="number" value={fees.heavy_garment_fee} onChange={e => setFees({...fees, heavy_garment_fee: e.target.value})} className="w-full border border-gray-200 rounded px-8 py-2.5 text-sm font-bold text-gray-700 outline-none focus:ring-1 focus:ring-blue-100"/>
+                </div>
+              </div>
             </div>
           </div>
+          
+          <div className="mt-10 flex justify-end">
+            <button 
+              onClick={() => handleUpdateConfig("Update Service Fees?")}
+              className="bg-[#0d6efd] text-white px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#0b5ed7] transition-all flex items-center gap-2"
+            >
+              <Save size={14} /> Update Fees
+            </button>
+          </div>
+        </div>
 
-          {/* Card 2: Allowed Areas */}
-          <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm">
+        {/* Card 2: Allowed Areas with Internal Button */}
+        <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
+          <div>
             <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-10">Allowed Areas</h3>
             <textarea 
               value={serviceAreas} 
               onChange={e => setServiceAreas(e.target.value)} 
-              className="w-full border border-gray-200 rounded-md px-4 py-4 text-xs font-medium resize-none min-h-[100px] outline-none focus:ring-1 focus:ring-blue-100" 
-              placeholder="Enter areas separated by commas (e.g. Mambaling, Basak)..." 
+              className="w-full border border-gray-200 rounded-md px-4 py-4 text-xs font-medium resize-none min-h-[105px] outline-none focus:ring-1 focus:ring-blue-100" 
+              placeholder="Cogon Pardo, Basak San Nicolas, Mambaling..." 
             />
           </div>
-        </div>
-
-        {/* Global Save Button for the Config section */}
-        <div className="flex justify-center pt-2">
-          <button 
-            onClick={handleUpdateConfig}
-            className="bg-[#0d6efd] text-white px-10 py-3 rounded-md text-xs font-bold uppercase tracking-widest hover:bg-[#0b5ed7] shadow-md transition-all flex items-center gap-2"
-          >
-            <Save size={16} /> Save Configuration
-          </button>
+          <div className="mt-6 flex justify-end">
+            <button 
+              onClick={() => handleUpdateConfig("Update Allowed Areas?")}
+              className="bg-[#0d6efd] text-white px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#0b5ed7] transition-all flex items-center gap-2"
+            >
+              <Save size={14} /> Save Areas
+            </button>
+          </div>
         </div>
       </div>
 
